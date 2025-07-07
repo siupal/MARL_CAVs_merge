@@ -21,7 +21,7 @@ def parse_args():
         + seed = 0
     """
     default_base_dir = "./results/"
-    default_config_dir = 'configs/configs_acktr.ini'
+    default_config_dir = os.path.join(os.path.dirname(__file__), 'configs/configs_acktr.ini')
     parser = argparse.ArgumentParser(description=('Train or evaluate policy on RL environment '
                                                   'using maacktr'))
     parser.add_argument('--base-dir', type=str, required=False,

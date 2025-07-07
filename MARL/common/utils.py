@@ -117,18 +117,19 @@ def copy_file_ppo(tar_dir):
     # env1 = '.highway_env/envs/merge_env_v1.py'
     # copy(env1, tar_dir)
 
-    env2 = 'configs/configs_ppo.ini'
+    env2 = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'configs/configs_ppo.ini')
     copy(env2, tar_dir)
 
-    models = 'MAPPO.py'
+    base_dir = os.path.dirname(os.path.dirname(__file__))
+    models = os.path.join(base_dir, 'MAPPO.py')
     copy(models, tar_dir)
-    main = 'run_mappo.py'
+    main = os.path.join(base_dir, 'run_mappo.py')
     copy(main, tar_dir)
-    c1 = 'single_agent/Agent_common.py'
+    c1 = os.path.join(base_dir, 'single_agent/Agent_common.py')
     copy(c1, tar_dir)
-    c2 = 'single_agent/Memory_common.py'
+    c2 = os.path.join(base_dir, 'single_agent/Memory_common.py')
     copy(c2, tar_dir)
-    c3 = 'single_agent/Model_common.py'
+    c3 = os.path.join(base_dir, 'single_agent/Model_common.py')
     copy(c3, tar_dir)
 
 
@@ -138,18 +139,19 @@ def copy_file_akctr(tar_dir):
     # env1 = '.highway_env/envs/merge_env_v1.py'
     # copy(env1, tar_dir)
 
-    env2 = 'configs/configs_acktr.ini'
+    base_dir = os.path.dirname(os.path.dirname(__file__))
+    env2 = os.path.join(base_dir, 'configs/configs_acktr.ini')
     copy(env2, tar_dir)
 
-    models = 'MAACKTR.py'
+    models = os.path.join(base_dir, 'MAACKTR.py')
     copy(models, tar_dir)
-    main = 'run_maacktr.py'
+    main = os.path.join(base_dir, 'run_maacktr.py')
     copy(main, tar_dir)
-    c1 = 'single_agent/Agent_common.py'
+    c1 = os.path.join(base_dir, 'single_agent/Agent_common.py')
     copy(c1, tar_dir)
-    c2 = 'single_agent/Memory_common.py'
+    c2 = os.path.join(base_dir, 'single_agent/Memory_common.py')
     copy(c2, tar_dir)
-    c3 = 'single_agent/Model_common.py'
+    c3 = os.path.join(base_dir, 'single_agent/Model_common.py')
     copy(c3, tar_dir)
 
 

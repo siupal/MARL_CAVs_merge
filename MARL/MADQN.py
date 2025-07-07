@@ -2,8 +2,10 @@ import torch as th
 from torch import nn
 import configparser
 from torch.optim import Adam, RMSprop
+import os, logging
+import numpy as np
 
-config_dir = 'configs/configs_dqn.ini'
+config_dir = os.path.join(os.path.dirname(__file__), 'configs/configs_dqn.ini')
 config = configparser.ConfigParser()
 config.read(config_dir)
 torch_seed = config.getint('MODEL_CONFIG', 'torch_seed')
@@ -11,8 +13,6 @@ th.manual_seed(torch_seed)
 th.backends.cudnn.benchmark = False
 th.backends.cudnn.deterministic = True
 
-import os, logging
-import numpy as np
 from single_agent.Model_common import ActorNetwork
 from single_agent.utils_common import identity, to_tensor_var
 from single_agent.Memory_common import ReplayMemory

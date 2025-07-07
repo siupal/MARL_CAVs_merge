@@ -21,7 +21,7 @@ def parse_args():                                                               
         + seed = 0
     """
     default_base_dir = "./results/"                                                                 # 默认的保存路径
-    default_config_dir = os.path.join(os.path.dirname(__file__), 'configs/configs_ppo.ini')  # 默认的配置文件路径
+    default_config_dir = 'configs/configs_ppo.ini'                                                  # 默认的配置文件路径
     parser = argparse.ArgumentParser(description=('Train or evaluate policy on RL environment '
                                                   'using mappo'))                                   # 创建一个解析器，描述解析器的作用
     parser.add_argument('--base-dir', type=str, required=False,

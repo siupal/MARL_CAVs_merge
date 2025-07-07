@@ -1,8 +1,9 @@
 import torch as th
 from torch import nn
 import configparser
+import os
 
-config_dir = 'configs/configs_acktr.ini'
+config_dir = os.path.join(os.path.dirname(__file__), 'configs/configs_acktr.ini')
 config = configparser.ConfigParser()
 config.read(config_dir)
 torch_seed = config.getint('MODEL_CONFIG', 'torch_seed')
