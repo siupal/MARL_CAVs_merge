@@ -2,7 +2,8 @@ from MADQN import MADQN
 from single_agent.utils_common import agg_double_list
 
 import sys
-sys.path.append("../highway-env")
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), 'highway-env'))
 import gym
 import numpy as np
 import matplotlib.pyplot as plt
