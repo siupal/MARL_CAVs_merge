@@ -17,9 +17,12 @@ highway-env/highway_env/envs/common/__pycache__/*
 */_ _pycache__/*        
 */__pycache__/*
 */__pycache__/*
+*/__pycache__/*
 
 
 highway-env/highway_env/__pycache__/__init__.cpython-310.pyc
 *.pyc
 cpython-310.pyc
 
+highway-env/highway_env/road/__pycache__/objects.cpython-310.pyc
+highway-env/highway_env/road/__pycache__/objects.cpython-310.pyc
