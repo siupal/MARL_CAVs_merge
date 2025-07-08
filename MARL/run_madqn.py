@@ -4,6 +4,11 @@ from single_agent.utils_common import agg_double_list
 import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), 'highway-env'))
+
+# 添加警告过滤，隐藏所有警告信息
+import warnings
+warnings.filterwarnings("ignore")
+
 import gym
 import numpy as np
 

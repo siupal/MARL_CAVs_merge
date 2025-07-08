@@ -4,6 +4,11 @@ from common.utils import agg_double_list, copy_file_akctr, init_dir
 import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), 'highway-env'))
+
+# 添加警告过滤，隐藏所有警告信息
+import warnings
+warnings.filterwarnings("ignore")
+
 import gym
 import numpy as np
 
@@ -51,7 +56,7 @@ def train(args):
     config.read(config_dir)
 
     # create an experiment folder
-    now = datetime.utcnow().strftime("%b_%d_%H_%M_%S")
+    now = datetime.now().strftime("%b_%d_%H_%M_%S")  # 获取当前本地时间
     output_dir = base_dir + now
     dirs = init_dir(output_dir)
     copy_file_akctr(dirs['configs'])
