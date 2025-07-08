@@ -6,6 +6,11 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), 'highway-env'))
 import gym
 import numpy as np
+
+# 添加numpy兼容层，解决bool8属性错误
+if not hasattr(np, 'bool8'):
+    np.bool8 = np.bool_
+
 import matplotlib.pyplot as plt
 import highway_env
 import os
