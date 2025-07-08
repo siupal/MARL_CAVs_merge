@@ -203,10 +203,10 @@ class KFACOptimizer(optim.Optimizer):
             if self.steps % self.Tf == 0:
                 # My asynchronous implementation exists, I will add it later.
                 # Experimenting with different ways to this in PyTorch.
-                self.d_a[m], self.Q_a[m] = torch.symeig(
-                    self.m_aa[m].cpu().double(), eigenvectors=True)
-                self.d_g[m], self.Q_g[m] = torch.symeig(
-                    self.m_gg[m].cpu().double(), eigenvectors=True)
+                self.d_a[m], self.Q_a[m] = torch.linalg.eigh(
+                    self.m_aa[m].cpu().double(), UPLO='L')
+                self.d_g[m], self.Q_g[m] = torch.linalg.eigh(
+                    self.m_gg[m].cpu().double(), UPLO='L')
                 self.d_a[m], self.Q_a[m] = self.d_a[m].float(), self.Q_a[m].float()
                 self.d_g[m], self.Q_g[m] = self.d_g[m].float(), self.Q_g[m].float()
                 if self.m_aa[m].is_cuda:
