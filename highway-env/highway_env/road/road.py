@@ -92,7 +92,10 @@ class RoadNetwork(object):
         # Randomly pick next road
         if not next_to:
             try:
-                next_to = list(self.graph[_to].keys())[np_random.randint(len(self.graph[_to]))]
+                if hasattr(np_random, 'randint'):
+                    next_to = list(self.graph[_to].keys())[np_random.randint(len(self.graph[_to]))]
+                else:
+                    next_to = list(self.graph[_to].keys())[np_random.integers(len(self.graph[_to]))]
             except KeyError:
                 # logger.warning("End of lane reached.")
                 return current_index
