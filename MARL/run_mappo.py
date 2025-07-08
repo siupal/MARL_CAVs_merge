@@ -61,10 +61,11 @@ def train(args):                                                                
     dirs = init_dir(output_dir)                                                                     # 初始化保存路径
     copy_file_ppo(dirs['configs'])                                                                  # 复制文件
 
-    if os.path.exists(args.model_dir):                                                              # 如果模型路径存在
+    # 修改这里，只有在明确指定--model-dir参数且路径存在时才加载模型
+    if args.model_dir and os.path.exists(args.model_dir):                                          # 如果指定了模型路径且路径存在
         model_dir = args.model_dir                                                                  # 模型路径
     else:                                                                                           # 否则
-        model_dir = dirs['models']                                                                  # 模型路径
+        model_dir = dirs['models']                                                                  # 使用新创建的模型路径
 
     # model configs
     BATCH_SIZE = config.getint('MODEL_CONFIG', 'BATCH_SIZE')                                        # 批大小

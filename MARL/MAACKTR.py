@@ -333,7 +333,9 @@ class JointACKTR:
             else:
                 self.actor_critic.eval()
             return True
-        logging.error('Can not find checkpoint for {}'.format(model_dir))
+        # 只有在指定了模型目录且目录存在时才记录错误
+        if model_dir != '' and os.path.exists(model_dir):
+            logging.error('Can not find checkpoint for {}'.format(model_dir))
         return False
 
     def save(self, model_dir, global_step):

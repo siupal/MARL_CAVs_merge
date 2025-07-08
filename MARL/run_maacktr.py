@@ -61,7 +61,8 @@ def train(args):
     dirs = init_dir(output_dir)
     copy_file_akctr(dirs['configs'])
 
-    if os.path.exists(args.model_dir):
+    # 修改这里，只有在明确指定--model-dir参数且路径存在时才加载模型
+    if args.model_dir and os.path.exists(args.model_dir):
         model_dir = args.model_dir
     else:
         model_dir = dirs['models']

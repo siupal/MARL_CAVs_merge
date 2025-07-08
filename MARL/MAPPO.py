@@ -374,7 +374,10 @@ class MAPPO:
             else:
                 self.actor.eval()                                                                                   # 否则评估（要么训练，要么评估）
             return True                                                                                             # 返回True
-        logging.error('Can not find checkpoint for {}'.format(model_dir))                                           # 输出错误信息
+    
+        # 只有在指定了模型目录且目录存在时才记录错误
+        if model_dir != '' and os.path.exists(model_dir):                                                           # 如果模型目录不为空且存在
+            logging.error('Can not find checkpoint for {}'.format(model_dir))                                       # 输出错误信息
         return False                                                                                                # 返回False
 
     def save(self, model_dir, global_step):                                                                         # 保存模型
