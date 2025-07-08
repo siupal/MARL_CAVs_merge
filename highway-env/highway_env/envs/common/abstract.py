@@ -203,7 +203,9 @@ class AbstractEnv(gym.Env):
                     available_actions[i][a] = 1
         else:
             available_actions = [[1] * self.n_a] * len(self.controlled_vehicles)
-        return np.asarray(obs).reshape((len(obs), -1)), np.array(available_actions)
+        # 为了兼容新版本gym，将action_mask放入info字典中
+        info = {"action_mask": np.array(available_actions)}
+        return np.asarray(obs).reshape((len(obs), -1)), info
 
     def _reset(self, num_CAV=1) -> None:
         """

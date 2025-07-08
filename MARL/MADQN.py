@@ -37,7 +37,8 @@ class MADQN:
         self.env = env
         self.state_dim = state_dim
         self.action_dim = action_dim
-        self.env_state, _ = self.env.reset()
+        self.env_state, info = self.env.reset()
+        self.action_mask = info["action_mask"]  # 从info中获取action_mask
         self.n_episodes = 0
         self.n_steps = 0
         self.max_steps = max_steps
@@ -83,7 +84,8 @@ class MADQN:
     # agent interact with the environment to collect experience
     def interact(self):
         if (self.max_steps is not None) and (self.n_steps >= self.max_steps):
-            self.env_state, _ = self.env.reset()
+            self.env_state, info = self.env.reset()
+            self.action_mask = info["action_mask"]  # 从info中获取action_mask
             self.n_steps = 0
         self.n_agents = len(self.env.controlled_vehicles)
 
@@ -96,7 +98,8 @@ class MADQN:
         elif self.reward_type == "global_R":
             reward = [global_reward] * self.n_agents
         if done:
-            self.env_state, _ = self.env.reset()
+            self.env_state, info = self.env.reset()
+            self.action_mask = info["action_mask"]  # 从info中获取action_mask
             self.n_episodes += 1
             self.episode_done = True
             self.episode_rewards.append(0)
@@ -182,7 +185,8 @@ class MADQN:
         for i in range(eval_episodes):
             rewards_i = []
             infos_i = []
-            state, _ = env.reset()
+            state, info = env.reset()
+            action_mask = info["action_mask"]  # 从info中获取action_mask
             action = self.action(state)
             state, reward, done, info = env.step(action)
             done = done[0] if isinstance(done, list) else done

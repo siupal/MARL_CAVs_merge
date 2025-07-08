@@ -44,9 +44,7 @@ class MAPPO:
         self.env = env
         self.state_dim = state_dim                                                                      # 状态维度
         self.action_dim = action_dim                                                                    # 动作维度
-        # 修改以适应新版本gym API
-        self.env_state, info = self.env.reset()                                                         # 初始化环境状态和信息
-        self.action_mask = info["action_mask"]                                                          # 从info中获取动作掩码
+        self.env_state, self.action_mask = self.env.reset()                                             # 初始化环境状态和动作掩码
         self.n_episodes = 0                                                                             # 记录智能体与环境交互的轮数
         self.n_steps = 0                                                                                # 记录智能体与环境交互的步数
         self.max_steps = max_steps                                                                      # 最大步数
@@ -104,8 +102,7 @@ class MAPPO:
     # agent interact with the environment to collect experience 智能体与环境交互以收集经验
     def interact(self):
         if (self.max_steps is not None) and (self.n_steps >= self.max_steps):                   # 判断智能体与环境交互的步数是否达到最大步数
-            self.env_state, info = self.env.reset()                                             # 初始化/重置环境
-            self.action_mask = info["action_mask"]                                               # 从info中获取动作掩码
+            self.env_state, _ = self.env.reset()                                                # 初始化/重置环境
             self.n_steps = 0                                                                    # 初始化/重置智能体与环境交互的步数
         states = []
         actions = []
@@ -138,8 +135,7 @@ class MAPPO:
 
             self.n_steps += 1                                                                   # 计算智能体与环境交互的步数计数
             if done:
-                self.env_state, info = self.env.reset()                                         # 重置环境
-                self.action_mask = info["action_mask"]                                          # 从info中获取动作掩码
+                self.env_state, _ = self.env.reset()                                            # 重置环境
                 break
 
         # discount reward   折扣奖励
@@ -278,20 +274,16 @@ class MAPPO:
             done = False                                                                                            # 初始化done标志
             if is_train:                                                                                            # 不同环境下的训练
                 if self.traffic_density == 1:
-                    state, info = env.reset(is_training=False, testing_seeds=seeds[i], num_CAV=i + 1)
-                    action_mask = info["action_mask"]
+                    state, action_mask = env.reset(is_training=False, testing_seeds=seeds[i], num_CAV=i + 1)
                 elif self.traffic_density == 2:
-                    state, info = env.reset(is_training=False, testing_seeds=seeds[i], num_CAV=i + 2)
-                    action_mask = info["action_mask"]
+                    state, action_mask = env.reset(is_training=False, testing_seeds=seeds[i], num_CAV=i + 2)
                 elif self.traffic_density == 3:
-                    state, info = env.reset(is_training=False, testing_seeds=seeds[i], num_CAV=i + 4)
-                    action_mask = info["action_mask"]
+                    state, action_mask = env.reset(is_training=False, testing_seeds=seeds[i], num_CAV=i + 4)
 
                 # 对训练环境进行重建
 
             else:
-                state, info = env.reset(is_training=False, testing_seeds=seeds[i])                                # 对测试环境进行重建
-                action_mask = info["action_mask"]                                                                # 从info中获取动作掩码
+                state, action_mask = env.reset(is_training=False, testing_seeds=seeds[i])                           # 对测试环境进行重建
 
             n_agents = len(env.controlled_vehicles)                                                                 # 获取环境中的智能体数量
             rendered_frame = env.render(mode="rgb_array")                                                           # 每一轮评估时都进行渲染

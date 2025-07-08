@@ -44,9 +44,36 @@ class MAPPO:
         self.env = env
         self.state_dim = state_dim                                                                      # 状态维度
         self.action_dim = action_dim                                                                    # 动作维度
-        # 修改以适应新版本gym API
-        self.env_state, info = self.env.reset()                                                         # 初始化环境状态和信息
-        self.action_mask = info["action_mask"]                                                          # 从info中获取动作掩码
+
+        # 尝试直接访问原始环境的reset方法，绕过Gym的包装器
+        try:
+            if hasattr(self.env, 'unwrapped'):
+                # 直接调用原始环境的reset方法
+                reset_result = self.env.unwrapped.reset()
+            else:
+                reset_result = self.env.reset()
+        except Exception as e:
+            print(f"调用原始环境的reset方法失败: {e}")
+            reset_result = self.env.reset()
+
+        # 处理不同格式的返回值
+        if isinstance(reset_result, tuple) and len(reset_result) == 2:
+            if isinstance(reset_result[1], dict):
+                # 新版本Gym的返回格式：(observation, info)
+                self.env_state = reset_result[0]
+                # 如果info字典中有action_mask，则使用它
+                if "action_mask" in reset_result[1]:
+                    self.action_mask = reset_result[1]["action_mask"]
+                else:
+                    self.action_mask = np.ones(self.action_dim)  # 默认所有动作都可用
+            else:
+                # 旧版本Gym的返回格式：(env_state, action_mask)
+                self.env_state, self.action_mask = reset_result
+        else:
+            # 单一返回值，只有状态
+            self.env_state = reset_result
+            self.action_mask = np.ones(self.action_dim)  # 默认所有动作都可用
+
         self.n_episodes = 0                                                                             # 记录智能体与环境交互的轮数
         self.n_steps = 0                                                                                # 记录智能体与环境交互的步数
         self.max_steps = max_steps                                                                      # 最大步数
@@ -103,10 +130,32 @@ class MAPPO:
 
     # agent interact with the environment to collect experience 智能体与环境交互以收集经验
     def interact(self):
-        if (self.max_steps is not None) and (self.n_steps >= self.max_steps):                   # 判断智能体与环境交互的步数是否达到最大步数
-            self.env_state, info = self.env.reset()                                             # 初始化/重置环境
-            self.action_mask = info["action_mask"]                                               # 从info中获取动作掩码
-            self.n_steps = 0                                                                    # 初始化/重置智能体与环境交互的步数
+        # 确保在第一次交互时或达到最大步数时总是调用reset
+        if self.n_steps == 0 or ((self.max_steps is not None) and (self.n_steps >= self.max_steps)):                   # 判断智能体与环境交互的步数是否为0或达到最大步数
+            # 处理Gym环境的新旧API返回格式
+            reset_result = self.env.unwrapped.reset() if hasattr(self.env, 'unwrapped') else self.env.reset()
+            
+            # 处理不同的返回格式
+            if isinstance(reset_result, tuple):
+                if len(reset_result) == 2:
+                    if isinstance(reset_result[1], dict):
+                        # 新API格式: (observation, info_dict)
+                        self.env_state = reset_result[0]
+                        self.action_mask = reset_result[1].get("action_mask", None)
+                    else:
+                        # 旧API格式: (observation, action_mask)
+                        self.env_state = reset_result[0]
+                        self.action_mask = reset_result[1]
+                else:
+                    # 其他格式的tuple
+                    self.env_state = reset_result[0]
+                    self.action_mask = None
+            else:
+                # 单一返回值
+                self.env_state = reset_result
+                self.action_mask = None
+            if (self.max_steps is not None) and (self.n_steps >= self.max_steps):
+                self.n_steps = 0                                                                    # 初始化/重置智能体与环境交互的步数
         states = []
         actions = []
         rewards = []                                                                            # 创建空列表用于存储智能体的状态、动作和奖励
@@ -138,8 +187,11 @@ class MAPPO:
 
             self.n_steps += 1                                                                   # 计算智能体与环境交互的步数计数
             if done:
-                self.env_state, info = self.env.reset()                                         # 重置环境
-                self.action_mask = info["action_mask"]                                          # 从info中获取动作掩码
+                reset_result = self.env.reset()
+                if isinstance(reset_result, tuple) and len(reset_result) == 2 and isinstance(reset_result[1], dict):
+                    self.env_state = reset_result[0]  # 新版本Gym的返回格式
+                else:
+                    self.env_state, _ = reset_result  # 旧版本Gym的返回格式
                 break
 
         # discount reward   折扣奖励
@@ -278,20 +330,29 @@ class MAPPO:
             done = False                                                                                            # 初始化done标志
             if is_train:                                                                                            # 不同环境下的训练
                 if self.traffic_density == 1:
-                    state, info = env.reset(is_training=False, testing_seeds=seeds[i], num_CAV=i + 1)
-                    action_mask = info["action_mask"]
+                    reset_result = env.reset(is_training=False, testing_seeds=seeds[i], num_CAV=i + 1)
                 elif self.traffic_density == 2:
-                    state, info = env.reset(is_training=False, testing_seeds=seeds[i], num_CAV=i + 2)
-                    action_mask = info["action_mask"]
+                    reset_result = env.reset(is_training=False, testing_seeds=seeds[i], num_CAV=i + 2)
                 elif self.traffic_density == 3:
-                    state, info = env.reset(is_training=False, testing_seeds=seeds[i], num_CAV=i + 4)
-                    action_mask = info["action_mask"]
+                    reset_result = env.reset(is_training=False, testing_seeds=seeds[i], num_CAV=i + 4)
+                
+                # 处理不同版本Gym的返回格式
+                if isinstance(reset_result, tuple) and len(reset_result) == 2 and isinstance(reset_result[1], dict):
+                    state = reset_result[0]  # 新版本Gym的返回格式
+                    action_mask = np.ones(self.action_dim)  # 默认所有动作都可用
+                else:
+                    state, action_mask = reset_result  # 旧版本Gym的返回格式
 
                 # 对训练环境进行重建
 
             else:
-                state, info = env.reset(is_training=False, testing_seeds=seeds[i])                                # 对测试环境进行重建
-                action_mask = info["action_mask"]                                                                # 从info中获取动作掩码
+                reset_result = env.reset(is_training=False, testing_seeds=seeds[i])                           # 对测试环境进行重建
+                # 处理不同版本Gym的返回格式
+                if isinstance(reset_result, tuple) and len(reset_result) == 2 and isinstance(reset_result[1], dict):
+                    state = reset_result[0]  # 新版本Gym的返回格式
+                    action_mask = np.ones(self.action_dim)  # 默认所有动作都可用
+                else:
+                    state, action_mask = reset_result  # 旧版本Gym的返回格式
 
             n_agents = len(env.controlled_vehicles)                                                                 # 获取环境中的智能体数量
             rendered_frame = env.render(mode="rgb_array")                                                           # 每一轮评估时都进行渲染
