@@ -11,6 +11,7 @@ warnings.filterwarnings("ignore")
 
 import gym
 import numpy as np
+from tqdm import tqdm
 
 # 添加numpy兼容层，解决bool8属性错误
 if not hasattr(np, 'bool8'):
@@ -135,18 +136,33 @@ def train(args):
     env.seed = env.config['seed']
     env.unwrapped.seed = env.config['seed']
     eval_rewards = []
+    
+    # 使用tqdm创建进度条
+    progress_bar = tqdm(total=MAX_EPISODES, desc="训练进度", unit="episode")
+    progress_bar.update(maacktr.n_episodes)  # 更新当前进度
+    
     while maacktr.n_episodes < MAX_EPISODES:
         maacktr.interact()
         if maacktr.n_episodes >= EPISODES_BEFORE_TRAIN:
             maacktr.train()
-        if maacktr.episode_done and ((maacktr.n_episodes + 1) % EVAL_INTERVAL == 0):
-            rewards, _, _, _ = maacktr.evaluation(env_eval, dirs['train_videos'], EVAL_EPISODES)
-            rewards_mu, rewards_std = agg_double_list(rewards)
-            print("Episode %d, Average Reward %.2f" % (maacktr.n_episodes + 1, rewards_mu))
-            eval_rewards.append(rewards_mu)
-            # save the model
-            maacktr.save(dirs['models'], maacktr.n_episodes + 1)
+        if maacktr.episode_done:
+            # 更新进度条
+            progress_bar.update(1)
+            progress_bar.set_postfix({"reward": maacktr.episode_rewards[-1]})
+            
+            if ((maacktr.n_episodes + 1) % EVAL_INTERVAL == 0):
+                rewards, _, _, _ = maacktr.evaluation(env_eval, dirs['train_videos'], EVAL_EPISODES)
+                rewards_mu, rewards_std = agg_double_list(rewards)
+                print("\nEpisode %d, Average Reward %.2f" % (maacktr.n_episodes + 1, rewards_mu))
+                eval_rewards.append(rewards_mu)
+                # save the model
+                maacktr.save(dirs['models'], maacktr.n_episodes + 1)
+                # 更新进度条描述
+                progress_bar.set_description(f"训练进度 [平均奖励: {rewards_mu:.2f}]")
 
+    # 关闭进度条
+    progress_bar.close()
+    
     # save the model
     maacktr.save(dirs['models'], MAX_EPISODES + 2)
     plt.figure()

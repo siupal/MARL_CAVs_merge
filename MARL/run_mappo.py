@@ -10,6 +10,7 @@ warnings.filterwarnings("ignore")
 
 import gym
 import numpy as np
+from tqdm import tqdm
 
 # 添加numpy兼容层，解决bool8属性错误
 if not hasattr(np, 'bool8'):
@@ -142,20 +143,34 @@ def train(args):                                                                
     env.unwrapped.seed = env.config['seed']                                                         # 设置种子
     eval_rewards = []                                                                               # 评估奖励  # 空列表，用于存放评估奖励
 
+    # 使用tqdm创建进度条
+    progress_bar = tqdm(total=MAX_EPISODES, desc="训练进度", unit="episode")                 # 创建进度条
+    progress_bar.update(mappo.n_episodes)                                                           # 更新当前进度
+
     while mappo.n_episodes < MAX_EPISODES:                                                          # 当episode小于最大episode时
         mappo.interact()                                                                            # 交互
         if mappo.n_episodes >= EPISODES_BEFORE_TRAIN:                                               # 如果episode大于等于训练前的episode
             mappo.train()                                                                           # 训练
-        if mappo.episode_done and ((mappo.n_episodes + 1) % EVAL_INTERVAL == 0):                    # 如果episode结束  # 并且  # 模型的episode+1能被评估间隔整除
-            rewards, _, _, _ = mappo.evaluation(env_eval, dirs['train_videos'], EVAL_EPISODES)      # 评估  # 评估环境  # 保存路径  # 评估episode
-            rewards_mu, rewards_std = agg_double_list(rewards)                                      # 奖励均值  # 奖励标准差
-            print("Episode %d, Average Reward %.2f" % (mappo.n_episodes + 1, rewards_mu))           # 打印
-            eval_rewards.append(rewards_mu)                                                         # 评估奖励列表添加奖励均值
-            # save the model
-            mappo.save(dirs['models'], mappo.n_episodes + 1)                                        # 保存模型  # 保存路径  # episode+1
+        if mappo.episode_done:                                                                      # 如果episode结束
+            # 更新进度条
+            progress_bar.update(1)                                                                  # 更新进度条
+            progress_bar.set_postfix({"reward": mappo.episode_rewards[-1]})                          # 设置进度条后缀
+
+            if ((mappo.n_episodes + 1) % EVAL_INTERVAL == 0):                                        # 如果模型的episode+1能被评估间隔整除
+                rewards, _, _, _ = mappo.evaluation(env_eval, dirs['train_videos'], EVAL_EPISODES)  # 评估  # 评估环境  # 保存路径  # 评估episode
+                rewards_mu, rewards_std = agg_double_list(rewards)                                  # 计算奖励的平均值和标准差
+                print("\nEpisode %d, Average Reward %.2f" % (mappo.n_episodes + 1, rewards_mu))      # 打印奖励信息
+                eval_rewards.append(rewards_mu)                                                     # 将奖励添加到奖励列表中
+                # save the model
+                mappo.save(dirs['models'], mappo.n_episodes + 1)                                     # 保存模型
+                # 更新进度条描述
+                progress_bar.set_description(f"训练进度 [平均奖励: {rewards_mu:.2f}]")   # 设置进度条描述  # 保存路径  # episode+1
+
+    # 关闭进度条
+    progress_bar.close()                                                                          # 关闭进度条
 
     # save the model
-    mappo.save(dirs['models'], MAX_EPISODES + 2)                                                    # 保存模型  # 保存路径  # 最大episode+2
+    mappo.save(dirs['models'], MAX_EPISODES + 2)                                                 # 保存模型  # 保存路径  # 最大episode+2
 
     plt.figure()                                                                                    # 创建图
     plt.plot(eval_rewards)                                                                          # 画图
