@@ -26,3 +26,13 @@ cpython-310.pyc
 
 highway-env/highway_env/road/__pycache__/objects.cpython-310.pyc
 highway-env/highway_env/road/__pycache__/objects.cpython-310.pyc
+H:\GithubProj\MARL_CAVs_merge\results
+H:\GithubProj\MARL_CAVs_merge\results\*
+
+results/* /configs/*
+results/* /configs/*        
+# 忽略训练结果目录
+/results/
+/results/*
+results/
+results/*
